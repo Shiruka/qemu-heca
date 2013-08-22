@@ -2792,25 +2792,31 @@ STEXI
 Prepare for incoming migration, listen on @var{port}.
 ETEXI
 
-DEF("heca_master", HAS_ARG, QEMU_OPTION_heca_master,
-    "-heca_master [,dsmid=dsm_id][,vmid=vm_id]\n"
-    "             [,vminfo=VMID:IP:RDMA_PORT:TCP_PORT[#VMID:IP:RDMA_PORT:TCP_PORT]]\n"
-    "             [,mr=MEM_START:MEM_SIZE:VMID[:VMID][#MEM_START:MEM_SIZE:VMID[:VMID]]]\n",
+DEF("heca", HAS_ARG, QEMU_OPTION_heca,
+    "-heca [hspaceid=value][,mode=master|client[,hprocid=id][,masterip=ip][,port=port][,tcp_port=port]]\n" \
+    "           Setup heca memory share feature.\n",
     QEMU_ARCH_ALL)
 STEXI
-@item -heca_master @var{n}[,dsmid=@var{dsm_id}][,vmid=@var{vm_id}][,vminfo=@var{vminfo}][,mr=@var{mrinfo}]
-@findex -heca_master
-This is used to specify the virtual machine as a master node in a hecatonchire (DSM) system.
+@item -heca
+@findex -heca
 ETEXI
 
-DEF("heca_client", HAS_ARG, QEMU_OPTION_heca_client,
-    "-heca_client [,dsmid=dsm_id][vmid=vm_id]\n"
-    "             [masterip=IP:RDMA_PORT:TCP_PORT]\n",
+DEF("hecaproc", HAS_ARG, QEMU_OPTION_hecaproc,
+    "-hecaproc [hprocid=id][,ip=ip][,port=port][,tcp_port=port]\n" \
+    "           Define heca_process information. Has to follow '-heca mode=master' parameter.\n",
     QEMU_ARCH_ALL)
 STEXI
-@item -heca_client @var{n}[,dsmid=@var{dsm_id}][,vmid=@var{vm_id}][,masterinfo=@var{masterinfo}]
-@findex -heca_client
-This is used to specify the virtual machine as a client node in a hecatonchire (DSM) system.
+@item -hecaproc
+@findex -hecaproc
+ETEXI
+
+DEF("hecamr", HAS_ARG, QEMU_OPTION_hecamr,
+    "-hecamr [start=value][,size=value][,hprocids=id[:id[:...]]]\n" \
+    "           Define heca_memory_region information. Has to follow -heca mode=master parameter.\n",
+    QEMU_ARCH_ALL)
+STEXI
+@item -hecamr
+@findex -hecamr
 ETEXI
 
 DEF("nodefaults", 0, QEMU_OPTION_nodefaults, \

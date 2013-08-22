@@ -492,6 +492,88 @@ static QemuOptsList qemu_object_opts = {
     },
 };
 
+static QemuOptsList qemu_heca_opts = {
+    .name = "heca",
+    .implied_opt_name = "mode",
+    .head = QTAILQ_HEAD_INITIALIZER(qemu_heca_opts.head),
+    .desc = {
+        {
+            .name = "hspaceid",
+            .type = QEMU_OPT_NUMBER,
+            .help = "heca_space id",
+        },{
+            .name = "mode",
+            .type = QEMU_OPT_STRING,
+            .help = "heca mode",
+        },{
+            .name = "hprocid",
+            .type = QEMU_OPT_NUMBER,
+            .help = "heca_process id, available only if mode=client",
+        },{
+            .name = "masterip",
+            .type = QEMU_OPT_STRING,
+            .help = "IP address of the master machine, available only if mode=client",
+        },{
+            .name = "port",
+            .type = QEMU_OPT_NUMBER,
+            .help = "Master machine port. Available only if client mode is selected",
+        },{
+            .name = "tcp_port",
+            .type = QEMU_OPT_NUMBER,
+            .help = "Tcp machine port. Available only if client mode is selected",
+        },
+        { /* End of the list */ }
+    },
+};
+
+static QemuOptsList qemu_hecaproc_opts = {
+    .name = "hecaproc",
+    .implied_opt_name = "hprocid",
+    .head = QTAILQ_HEAD_INITIALIZER(qemu_heca_opts.head),
+    .desc = {
+        {
+            .name = "hprocid",
+            .type = QEMU_OPT_NUMBER,
+            .help = "heca_process id",
+        },{
+            .name = "ip",
+            .type = QEMU_OPT_STRING,
+            .help = "heca_process IP address",
+        },{
+            .name = "port",
+            .type = QEMU_OPT_NUMBER,
+            .help = "heca_process port",
+        },{
+            .name = "tcp_port",
+            .type = QEMU_OPT_NUMBER,
+            .help = "heca_process tcp port",
+        },
+        { /* End of the list */ }
+    },
+};
+
+static QemuOptsList qemu_hecamr_opts = {
+    .name = "hecamr",
+    .implied_opt_name = "size",
+    .head = QTAILQ_HEAD_INITIALIZER(qemu_heca_opts.head),
+    .desc = {
+        {
+            .name = "start",
+            .type = QEMU_OPT_NUMBER,
+            .help = "heca memory region starting point",
+        },{
+            .name = "size",
+            .type = QEMU_OPT_SIZE,
+            .help = "heca memory region size",
+        },{
+            .name = "hprocids",
+            .type = QEMU_OPT_STRING,
+            .help = "heca_process ids for this memory region, divided by :",
+        },
+        { /* End of the list */ }
+    },
+};
+
 const char *qemu_get_vm_name(void)
 {
     return qemu_name;
@@ -2861,6 +2943,9 @@ int main(int argc, char **argv, char **envp)
     qemu_add_opts(&qemu_sandbox_opts);
     qemu_add_opts(&qemu_add_fd_opts);
     qemu_add_opts(&qemu_object_opts);
+    qemu_add_opts(&qemu_heca_opts);
+    qemu_add_opts(&qemu_hecaproc_opts);
+    qemu_add_opts(&qemu_hecamr_opts);
 
     runstate_init();
 
@@ -3697,11 +3782,17 @@ int main(int argc, char **argv, char **envp)
                 incoming = optarg;
                 runstate_set(RUN_STATE_INMIGRATE);
                 break;
-            case QEMU_OPTION_heca_master:
-                heca_master_cmdline_init(optarg);
+            case QEMU_OPTION_heca:
+                opts = qemu_opts_parse(qemu_find_opts("heca"), optarg, 0);
+                heca_cmd_init(opts);
                 break;
-            case QEMU_OPTION_heca_client:
-                heca_client_cmdline_init(optarg);
+            case QEMU_OPTION_hecaproc:
+                opts = qemu_opts_parse(qemu_find_opts("hecaproc"), optarg, 0);
+                hecaproc_cmd_add(opts);
+                break;
+            case QEMU_OPTION_hecamr:
+                opts = qemu_opts_parse(qemu_find_opts("hecamr"), optarg, 0);
+                hecamr_cmd_add(opts);
                 break;
             case QEMU_OPTION_nodefaults:
                 default_serial = 0;
@@ -3819,6 +3910,9 @@ int main(int argc, char **argv, char **envp)
         }
     }
     loc_set_none();
+    
+    heca_check_params();
+    heca_check_mrs(ram_size);
 
     if (qemu_init_main_loop()) {
         fprintf(stderr, "qemu_init_main_loop failed\n");
